@@ -13,6 +13,7 @@ import {
   calcularExecucaoOrcamentaria,
 } from "../../core/src/indicadores/execucaoOrcamentaria.js";
 import { RASTREIO_RCL, extrairRCL } from "../../core/src/indicadores/rcl.js";
+import { MUNICIPIOS_ALVO } from "../../core/src/municipiosAlvo.js";
 import { buscarRGF, buscarRREO } from "../../core/src/siconfi/client.js";
 import type {
   IndicadorFiscal,
@@ -22,19 +23,6 @@ import type {
 } from "../../core/src/types.js";
 import { abrirBanco } from "./db/client.js";
 import { type ResultadoParaGravar, upsertResultado } from "./db/repositorio.js";
-
-interface MunicipioAlvo {
-  codIbge: number;
-  nome: string;
-}
-
-const MUNICIPIOS_ALVO: readonly MunicipioAlvo[] = [
-  { codIbge: 4303004, nome: "Cachoeira do Sul" },
-  { codIbge: 4315701, nome: "Rio Pardo" },
-  { codIbge: 4302808, nome: "Caçapava do Sul" },
-  { codIbge: 4319604, nome: "São Sepé" },
-  { codIbge: 4306908, nome: "Encruzilhada do Sul" },
-];
 
 const EXERCICIO = 2024;
 const PERIODO_RREO: Periodo = { exercicio: EXERCICIO, numero: 6, periodicidade: "B" };
@@ -120,17 +108,16 @@ function gravar(
 
 async function ingerirMunicipio(
   db: ReturnType<typeof abrirBanco>["db"],
-  alvo: MunicipioAlvo,
+  municipio: Municipio,
 ): Promise<{ ok: number; falhas: number }> {
-  console.log(`\n→ ${alvo.nome} (${alvo.codIbge})`);
-  const municipio: Municipio = { codIbge: alvo.codIbge, nome: alvo.nome, uf: "RS" };
+  console.log(`\n→ ${municipio.nome} (${municipio.codIbge})`);
   let ok = 0;
   let falhas = 0;
 
   const itensRGF = await buscarRGF({
     anExercicio: EXERCICIO,
     nrPeriodo: PERIODO_RGF.numero,
-    idEnte: alvo.codIbge,
+    idEnte: municipio.codIbge,
   }).catch((erro: unknown) => {
     console.error(
       `  ✗ falha ao buscar RGF: ${erro instanceof Error ? erro.message : String(erro)}`,
@@ -189,7 +176,7 @@ async function ingerirMunicipio(
   const itensRREO = await buscarRREO({
     anExercicio: EXERCICIO,
     nrPeriodo: PERIODO_RREO.numero,
-    idEnte: alvo.codIbge,
+    idEnte: municipio.codIbge,
   }).catch((erro: unknown) => {
     console.error(
       `  ✗ falha ao buscar RREO: ${erro instanceof Error ? erro.message : String(erro)}`,
