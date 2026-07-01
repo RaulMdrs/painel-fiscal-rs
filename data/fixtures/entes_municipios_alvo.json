@@ -1,0 +1,63 @@
+{
+  "items": [
+    {
+      "cod_ibge": 4319604,
+      "ente": "São Sepé",
+      "capital": "0  ",
+      "regiao": "SU",
+      "uf": "RS",
+      "esfera": "M",
+      "exercicio": 2026,
+      "populacao": 21551,
+      "cnpj": "97229181000164"
+    },
+    {
+      "cod_ibge": 4315701,
+      "ente": "Rio Pardo",
+      "capital": "0  ",
+      "regiao": "SU",
+      "uf": "RS",
+      "esfera": "M",
+      "exercicio": 2026,
+      "populacao": 35641,
+      "cnpj": "88821079000162"
+    },
+    {
+      "cod_ibge": 4302808,
+      "ente": "Caçapava do Sul",
+      "capital": "0  ",
+      "regiao": "SU",
+      "uf": "RS",
+      "esfera": "M",
+      "exercicio": 2026,
+      "populacao": 33501,
+      "cnpj": "88142302000145"
+    },
+    {
+      "cod_ibge": 4303004,
+      "ente": "Cachoeira do Sul",
+      "capital": "0  ",
+      "regiao": "SU",
+      "uf": "RS",
+      "esfera": "M",
+      "exercicio": 2026,
+      "populacao": 82222,
+      "cnpj": "87530978000143"
+    },
+    {
+      "cod_ibge": 4306908,
+      "ente": "Encruzilhada do Sul",
+      "capital": "0  ",
+      "regiao": "SU",
+      "uf": "RS",
+      "esfera": "M",
+      "exercicio": 2026,
+      "populacao": 24275,
+      "cnpj": "89363642000169"
+    }
+  ],
+  "hasMore": false,
+  "limit": 6000,
+  "offset": 0,
+  "count": 5
+}
