@@ -45,3 +45,7 @@ Ver `README.md` e `docs/PLANO_CLAUDE_CODE.md`.
 - Endpoints principais: `/entes`, `/rreo`, `/rgf`.
 - Municípios-alvo (confirmar cod_ibge na Tarefa 0): Cachoeira do Sul, Rio Pardo,
   Caçapava do Sul, São Sepé, Encruzilhada do Sul.
+- ⚠️ `/rgf` exige `in_periodicidade=Q` e `co_poder=E` (município, Poder
+  Executivo) além de `an_exercicio`, `nr_periodo`, `co_tipo_demonstrativo` e
+  `id_ente`. Sem esses dois parâmetros, a API retorna `count: 0` **sem erro**
+  — falha silenciosa. `/rreo` não precisa desses parâmetros extras.
