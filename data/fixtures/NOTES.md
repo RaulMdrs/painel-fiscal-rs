@@ -20,6 +20,14 @@ Nota: `/entes` sem `an_exercicio` retorna o ano corrente (2026 no momento da
 consulta), não o ano do relatório — não usar `populacao`/`exercicio` desse
 endpoint como se fosse do período do RREO/RGF.
 
+⚠️ **Descoberto na Tarefa 2, via teste de integração contra a API real**:
+`/entes` sem filtro retorna entidades de **todas** as esferas, não só
+municípios — `esfera: "U"` (União, `cod_ibge: 1`, **`uf: null`**), `esfera:
+"E"`/`"D"` (Estados/DF, `cod_ibge` de 2 dígitos), além de `esfera: "M"`
+(municípios, 7 dígitos). O schema Zod em `packages/core/src/siconfi/schemas.ts`
+não presume 7 dígitos nem `uf` não-nulo por causa disso — só valida isso quem
+filtra municípios-alvo na borda (ingestion).
+
 ## RREO — `rreo_4303004_2024_p6.json`
 
 Query: `an_exercicio=2024&nr_periodo=6&co_tipo_demonstrativo=RREO&id_ente=4303004`
