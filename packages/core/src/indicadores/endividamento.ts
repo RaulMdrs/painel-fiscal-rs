@@ -18,7 +18,7 @@ export interface ResultadoEndividamento {
  * em vez de fixar um período, já que o indicador precisa valer para qualquer
  * município/período, não só o 3º quadrimestre de Cachoeira do Sul.
  */
-function colunaAcumulada(periodicidade: string, periodo: number): string {
+export function colunaAcumulada(periodicidade: string, periodo: number): string {
   switch (periodicidade) {
     case "Q":
       return `Até o ${periodo}º Quadrimestre`;
@@ -29,6 +29,18 @@ function colunaAcumulada(periodicidade: string, periodo: number): string {
         `Periodicidade "${periodicidade}" não suportada para localizar a coluna acumulada do RGF-Anexo 02.`,
       );
   }
+}
+
+/** Rastreabilidade da fonte do percentual retornado (para quem persiste o resultado). */
+export function rastreioPercentualDCL(
+  periodicidade: string,
+  periodo: number,
+): { anexo: string; codConta: string; coluna: string } {
+  return {
+    anexo: ANEXO,
+    codConta: "PercentualDaDCLSobreARCL",
+    coluna: colunaAcumulada(periodicidade, periodo),
+  };
 }
 
 /**

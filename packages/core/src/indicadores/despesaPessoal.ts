@@ -5,6 +5,13 @@ const ANEXO = "RGF-Anexo 01";
 const COLUNA_VALOR = "Valor";
 const COLUNA_PERCENTUAL = "% sobre a RCL Ajustada";
 
+/** Rastreabilidade da fonte do percentual retornado (para quem persiste o resultado). */
+export const RASTREIO_PERCENTUAL_SOBRE_RCL = {
+  anexo: ANEXO,
+  codConta: "DespesaComPessoalTotal",
+  coluna: COLUNA_PERCENTUAL,
+} as const;
+
 export interface ResultadoDespesaPessoal {
   despesaTotalComPessoal: number;
   receitaCorrenteLiquidaAjustada: number;
