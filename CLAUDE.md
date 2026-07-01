@@ -55,4 +55,6 @@ Ver `README.md` e `docs/PLANO_CLAUDE_CODE.md`.
 - Uma tarefa = uma branch = um PR. NUNCA mergear em main localmente.
 - Push só da branch de feature. O merge acontece via PR.
 - main local só atualiza via git pull após o PR ser mergeado.
-- Ao terminar uma tarefa: push da branch e parar. Não tocar na main.
+- Ao terminar uma tarefa: push da branch e, se necessário, já abrir a PR para
+  main (`gh pr create`) — não esperar o usuário pedir. Depois, parar. Não
+  tocar na main.
