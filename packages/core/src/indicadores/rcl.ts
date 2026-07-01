@@ -6,6 +6,13 @@ const ANEXO = "RREO-Anexo 03";
 // acumulado dos últimos 12 meses seria um erro silencioso.
 const COLUNA_ULTIMOS_12_MESES = "TOTAL (ÚLTIMOS 12 MESES)";
 
+/** Rastreabilidade da fonte do valor retornado (para quem persiste o resultado). */
+export const RASTREIO_RCL = {
+  anexo: ANEXO,
+  codConta: "RREO3ReceitaCorrenteLiquida",
+  coluna: COLUNA_ULTIMOS_12_MESES,
+} as const;
+
 export interface ResultadoRCL {
   receitaCorrenteLiquida: number;
 }

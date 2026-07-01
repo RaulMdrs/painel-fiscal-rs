@@ -19,6 +19,18 @@ const COLUNA_DESPESA_REALIZADA = "DESPESAS EMPENHADAS ATÉ O BIMESTRE (f)";
 // comparar com o % (c/a) que o relatório já publica).
 const TOLERANCIA_ORACULO_CRUZADO_PP = 0.05;
 
+/** Rastreabilidade da fonte dos valores retornados (para quem persiste o resultado). */
+export const RASTREIO_EXECUCAO_RECEITA = {
+  anexo: ANEXO,
+  codConta: "TotalReceitas",
+  coluna: COLUNA_RECEITA_PERCENTUAL_OFICIAL,
+} as const;
+export const RASTREIO_EXECUCAO_DESPESA = {
+  anexo: ANEXO,
+  codConta: "TotalDespesas",
+  coluna: COLUNA_DESPESA_REALIZADA,
+} as const;
+
 export interface ResultadoExecucaoOrcamentaria {
   receitaPrevista: number;
   receitaRealizada: number;

@@ -17,13 +17,17 @@ export interface Periodo {
 }
 
 /**
- * Os 4 indicadores fiscais da Fase 0 (ver README.md).
+ * Os 4 indicadores fiscais da Fase 0 (ver README.md). Execução orçamentária
+ * vira duas entradas porque o RREO-Anexo 01 não publica um único percentual
+ * de "realizado": receita tem uma coluna pronta, despesa é por estágio
+ * (empenhado/liquidado/pago) — ver packages/core/src/indicadores/execucaoOrcamentaria.ts.
  */
 export type IndicadorFiscal =
   | "receita_corrente_liquida"
   | "despesa_pessoal"
   | "endividamento"
-  | "execucao_orcamentaria";
+  | "execucao_orcamentaria_receita"
+  | "execucao_orcamentaria_despesa";
 
 export type UnidadeIndicador = "BRL" | "PERCENTUAL";
 
