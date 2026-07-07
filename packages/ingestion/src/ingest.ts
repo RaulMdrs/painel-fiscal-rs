@@ -13,7 +13,6 @@ import {
   calcularExecucaoOrcamentaria,
 } from "../../core/src/indicadores/execucaoOrcamentaria.js";
 import { RASTREIO_RCL, extrairRCL } from "../../core/src/indicadores/rcl.js";
-import { MUNICIPIOS_ALVO } from "../../core/src/municipiosAlvo.js";
 import { buscarRGF, buscarRREO } from "../../core/src/siconfi/client.js";
 import type {
   IndicadorFiscal,
@@ -21,8 +20,18 @@ import type {
   Periodo,
   UnidadeIndicador,
 } from "../../core/src/types.js";
-import { abrirBanco } from "./db/client.js";
-import { type ResultadoParaGravar, upsertResultado } from "./db/repositorio.js";
+import { executarComLimite } from "./concorrencia.js";
+import { lerConfiguracao } from "./config.js";
+import { abrirBanco, type Banco } from "./db/client.js";
+import {
+  buscarProgresso,
+  relatorioCobertura,
+  type ResultadoParaGravar,
+  type StatusIngestao,
+  upsertProgresso,
+  upsertResultado,
+} from "./db/repositorio.js";
+import { listarMunicipiosAlvo } from "./municipios.js";
 
 const EXERCICIO = 2024;
 const PERIODO_RREO: Periodo = { exercicio: EXERCICIO, numero: 6, periodicidade: "B" };
@@ -65,18 +74,21 @@ function formatarValor(unidade: UnidadeIndicador, valor: number): string {
 }
 
 /** Executa uma função de cálculo do core; loga e retorna undefined se ela falhar alto. */
-function tentarCalcular<T>(rotulo: string, calcular: () => T): T | undefined {
+function tentarCalcular<T>(contexto: string, rotulo: string, calcular: () => T): T | undefined {
   try {
     return calcular();
   } catch (erro) {
-    console.error(`  ✗ ${rotulo}: ${erro instanceof Error ? erro.message : String(erro)}`);
+    console.error(
+      `  ${contexto} ✗ ${rotulo}: ${erro instanceof Error ? erro.message : String(erro)}`,
+    );
     return undefined;
   }
 }
 
 /** Grava um resultado no banco (upsert); loga sucesso/falha. Retorna se gravou. */
 function gravar(
-  db: ReturnType<typeof abrirBanco>["db"],
+  db: Banco,
+  contexto: string,
   municipio: Municipio,
   periodo: Periodo,
   demonstrativo: "RREO" | "RGF",
@@ -96,21 +108,23 @@ function gravar(
       ...rastreio,
     };
     upsertResultado(db, resultado);
-    console.log(`  ✓ ${indicador}: ${formatarValor(unidade, valor)}`);
+    console.log(`  ${contexto} ✓ ${indicador}: ${formatarValor(unidade, valor)}`);
     return true;
   } catch (erro) {
     console.error(
-      `  ✗ ${indicador}: falha ao gravar no banco — ${erro instanceof Error ? erro.message : String(erro)}`,
+      `  ${contexto} ✗ ${indicador}: falha ao gravar no banco — ${erro instanceof Error ? erro.message : String(erro)}`,
     );
     return false;
   }
 }
 
 async function ingerirMunicipio(
-  db: ReturnType<typeof abrirBanco>["db"],
+  db: Banco,
   municipio: Municipio,
+  prefixo: string,
 ): Promise<{ ok: number; falhas: number }> {
-  console.log(`\n→ ${municipio.nome} (${municipio.codIbge})`);
+  const contexto = `${prefixo} ${municipio.nome}`;
+  console.log(`${contexto} (${municipio.codIbge})`);
   let ok = 0;
   let falhas = 0;
 
@@ -120,18 +134,19 @@ async function ingerirMunicipio(
     idEnte: municipio.codIbge,
   }).catch((erro: unknown) => {
     console.error(
-      `  ✗ falha ao buscar RGF: ${erro instanceof Error ? erro.message : String(erro)}`,
+      `  ${contexto} ✗ falha ao buscar RGF: ${erro instanceof Error ? erro.message : String(erro)}`,
     );
     return undefined;
   });
 
   if (itensRGF !== undefined) {
-    const despesaPessoal = tentarCalcular("despesa_pessoal", () =>
+    const despesaPessoal = tentarCalcular(contexto, "despesa_pessoal", () =>
       calcularDespesaPessoal(itensRGF),
     );
     if (despesaPessoal !== undefined) {
       const sucesso = gravar(
         db,
+        contexto,
         municipio,
         PERIODO_RGF,
         "RGF",
@@ -145,7 +160,7 @@ async function ingerirMunicipio(
       falhas++;
     }
 
-    const endividamento = tentarCalcular("endividamento", () =>
+    const endividamento = tentarCalcular(contexto, "endividamento", () =>
       calcularEndividamento(itensRGF),
     );
     if (endividamento !== undefined) {
@@ -155,6 +170,7 @@ async function ingerirMunicipio(
       );
       const sucesso = gravar(
         db,
+        contexto,
         municipio,
         PERIODO_RGF,
         "RGF",
@@ -168,8 +184,8 @@ async function ingerirMunicipio(
       falhas++;
     }
   } else {
-    console.error("  ✗ despesa_pessoal: RGF indisponível, pulando.");
-    console.error("  ✗ endividamento: RGF indisponível, pulando.");
+    console.error(`  ${contexto} ✗ despesa_pessoal: RGF indisponível, pulando.`);
+    console.error(`  ${contexto} ✗ endividamento: RGF indisponível, pulando.`);
     falhas += 2;
   }
 
@@ -179,16 +195,17 @@ async function ingerirMunicipio(
     idEnte: municipio.codIbge,
   }).catch((erro: unknown) => {
     console.error(
-      `  ✗ falha ao buscar RREO: ${erro instanceof Error ? erro.message : String(erro)}`,
+      `  ${contexto} ✗ falha ao buscar RREO: ${erro instanceof Error ? erro.message : String(erro)}`,
     );
     return undefined;
   });
 
   if (itensRREO !== undefined) {
-    const rcl = tentarCalcular("receita_corrente_liquida", () => extrairRCL(itensRREO));
+    const rcl = tentarCalcular(contexto, "receita_corrente_liquida", () => extrairRCL(itensRREO));
     if (rcl !== undefined) {
       const sucesso = gravar(
         db,
+        contexto,
         municipio,
         PERIODO_RREO,
         "RREO",
@@ -202,12 +219,13 @@ async function ingerirMunicipio(
       falhas++;
     }
 
-    const execucao = tentarCalcular("execucao_orcamentaria", () =>
+    const execucao = tentarCalcular(contexto, "execucao_orcamentaria", () =>
       calcularExecucaoOrcamentaria(itensRREO),
     );
     if (execucao !== undefined) {
       const sucessoReceita = gravar(
         db,
+        contexto,
         municipio,
         PERIODO_RREO,
         "RREO",
@@ -220,6 +238,7 @@ async function ingerirMunicipio(
 
       const sucessoDespesa = gravar(
         db,
+        contexto,
         municipio,
         PERIODO_RREO,
         "RREO",
@@ -233,9 +252,9 @@ async function ingerirMunicipio(
       falhas += 2;
     }
   } else {
-    console.error("  ✗ receita_corrente_liquida: RREO indisponível, pulando.");
+    console.error(`  ${contexto} ✗ receita_corrente_liquida: RREO indisponível, pulando.`);
     console.error(
-      "  ✗ execucao_orcamentaria_receita/despesa: RREO indisponível, pulando.",
+      `  ${contexto} ✗ execucao_orcamentaria_receita/despesa: RREO indisponível, pulando.`,
     );
     falhas += 3;
   }
@@ -243,32 +262,86 @@ async function ingerirMunicipio(
   return { ok, falhas };
 }
 
-async function main(): Promise<void> {
-  console.log(
-    `Ingestão SICONFI → ${CAMINHO_BANCO}\n` +
-      `Exercício ${EXERCICIO} — RREO ${rotuloPeriodo(PERIODO_RREO)}, RGF ${rotuloPeriodo(PERIODO_RGF)}`,
-  );
+/** Rótulo de status para a linha de progresso de um município. */
+function rotuloStatus(status: StatusIngestao, ok: number, falhas: number): string {
+  switch (status) {
+    case "completo":
+      return `✓ ${ok} indicador(es)`;
+    case "sem_dados":
+      return "✗ sem_dados";
+    case "parcial":
+      return `⚠ parcial (${ok}/${ok + falhas})`;
+  }
+}
 
+async function main(): Promise<void> {
+  const config = lerConfiguracao();
   const { db, fechar } = abrirBanco(CAMINHO_BANCO);
 
-  let totalOk = 0;
-  let totalFalhas = 0;
   try {
-    for (const alvo of MUNICIPIOS_ALVO) {
-      const { ok, falhas } = await ingerirMunicipio(db, alvo);
+    console.log(`Buscando municípios de UF=${config.uf} via SICONFI /entes...`);
+    const municipios = await listarMunicipiosAlvo({ uf: config.uf, limite: config.limite });
+    if (municipios.length === 0) {
+      throw new Error(`Nenhum município encontrado para UF="${config.uf}".`);
+    }
+
+    console.log(
+      `Ingestão SICONFI → ${CAMINHO_BANCO}\n` +
+        `Exercício ${EXERCICIO} — RREO ${rotuloPeriodo(PERIODO_RREO)}, RGF ${rotuloPeriodo(PERIODO_RGF)}\n` +
+        `${municipios.length} município(s) alvo, concorrência=${config.concorrencia}` +
+        `${config.forcar ? " (ignorando progresso anterior)" : ""}.`,
+    );
+
+    let totalOk = 0;
+    let totalFalhas = 0;
+    let puladas = 0;
+
+    await executarComLimite(municipios, config.concorrencia, async (municipio, indice) => {
+      const prefixo = `[${indice + 1}/${municipios.length}]`;
+
+      if (!config.forcar) {
+        const progresso = buscarProgresso(db, municipio.codIbge, EXERCICIO);
+        if (progresso !== undefined) {
+          console.log(
+            `${prefixo} ${municipio.nome}... já ingerido (${progresso.status}), pulando.`,
+          );
+          puladas++;
+          return;
+        }
+      }
+
+      const { ok, falhas } = await ingerirMunicipio(db, municipio, prefixo);
       totalOk += ok;
       totalFalhas += falhas;
+
+      const status: StatusIngestao = ok === 0 ? "sem_dados" : falhas === 0 ? "completo" : "parcial";
+      upsertProgresso(db, {
+        municipio,
+        exercicio: EXERCICIO,
+        status,
+        indicadoresOk: ok,
+        indicadoresFalha: falhas,
+      });
+      console.log(`${prefixo} ${municipio.nome}... ${rotuloStatus(status, ok, falhas)}`);
+    });
+
+    const cobertura = relatorioCobertura(db, EXERCICIO);
+    const totalRegistrado = cobertura.completo + cobertura.parcial + cobertura.sem_dados;
+
+    console.log(`\n=== Relatório de cobertura — exercício ${EXERCICIO} (UF=${config.uf}) ===`);
+    console.log(`Completo:   ${cobertura.completo}`);
+    console.log(`Parcial:    ${cobertura.parcial}`);
+    console.log(`Sem dados:  ${cobertura.sem_dados}`);
+    console.log(`Total:      ${totalRegistrado} de ${municipios.length} município(s) alvo.`);
+    if (puladas > 0) {
+      console.log(`(${puladas} já haviam sido ingerido(s) nesta execução e foram pulado(s).)`);
     }
+    console.log(
+      `\nResumo desta execução: ${totalOk} indicador(es) gravado(s), ${totalFalhas} falha(s), ` +
+        `${puladas} pulado(s).`,
+    );
   } finally {
     fechar();
-  }
-
-  console.log(
-    `\nResumo: ${totalOk} indicador(es) gravado(s), ${totalFalhas} falha(s), ` +
-      `em ${MUNICIPIOS_ALVO.length} município(s).`,
-  );
-  if (totalFalhas > 0) {
-    process.exitCode = 1;
   }
 }
 

@@ -93,6 +93,21 @@ export async function listarEntes(
   return buscarTodasPaginas("entes", query, entesRespostaSchema);
 }
 
+/**
+ * Lista municípios (esfera "M") via /entes, opcionalmente filtrando por UF —
+ * usado pela ingestão em escala (Fase 1) para descobrir os ~497 municípios do
+ * RS em vez de uma lista fixa. `/entes` sem filtro retorna todas as esferas
+ * (União, Estados, Municípios) — ver data/fixtures/NOTES.md.
+ */
+export async function listarMunicipios(
+  params: { uf?: string } = {},
+): Promise<Ente[]> {
+  const entes = await listarEntes();
+  return entes.filter(
+    (ente) => ente.esfera === "M" && (params.uf === undefined || ente.uf === params.uf),
+  );
+}
+
 export async function buscarRREO(params: {
   anExercicio: number;
   nrPeriodo: number;
