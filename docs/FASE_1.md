@@ -89,6 +89,27 @@ reduced-motion salta sem animar; sem números-contador.
 
 ## Depois da cobertura: tração
 
+### Evolução do seletor: escolha por mapa
+
+Marco planejado, não uma tarefa desta fase: evoluir o seletor de município da
+Tarefa 1.3 (busca por nome com autocomplete) para um **mapa do RS clicável** —
+o usuário clica no município no mapa para escolher o foco, em vez de (ou além
+de) digitar o nome. É mais intuitivo pra quem já pensa geograficamente
+("cadê minha cidade no mapa") do que pra quem já sabe o nome exato.
+
+Depende de duas coisas que a busca por autocomplete não precisa:
+- **Malhas municipais do IBGE** (polígonos de cada município, formato
+  geoespacial) — fonte diferente da API de Localidades usada na Tarefa 1.2
+  (que só dá nome/microrregião, sem geometria).
+- Uma **biblioteca de mapa** no front-end (ex. Leaflet, Mapbox GL) — dependência
+  nova, com peso de bundle e curva de aprendizado que não se justificam antes
+  de o seletor básico existir.
+
+Por isso fica **depois** do seletor por autocomplete (Tarefa 1.3): a busca por
+nome já resolve o critério de aceite ("trocar de cidade recarrega foco +
+vizinhos") sem essas duas dependências extras. O mapa é uma evolução de UX
+sobre uma base que já funciona, não um bloqueador.
+
 Com o RS coberto, o valor cívico aparece:
 - Rankings ("municípios do RS mais próximos de estourar o limite de pessoal").
 - Painel-resumo do estado ("X% dos municípios publicaram; Y estão acima do
