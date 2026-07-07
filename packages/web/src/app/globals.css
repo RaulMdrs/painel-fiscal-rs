@@ -1,0 +1,620 @@
+/* ── Sistema "Diário fiscal" ─────────────────────────────────────────────
+   Papel frio, tinta escura, filetes finos e números de planilha. A única
+   cor da página é o semáforo da lei; paleta de sinal validada para CVD
+   (deutan ΔE 29,2) — e o estado nunca depende só dela: o carimbo textual
+   acompanha sempre. Light-only por conceito. */
+
+:root {
+  --papel: #f4f6f4;
+  --card: #ffffff;
+  --card-mudo: #edf0ed;
+  --tinta: #1b241f;
+  --tinta-suave: #5c6862;
+  --filete: #dbe1dc;
+  --grafite: #4a5550;
+
+  --verde-sinal: #217a47;
+  --ambar-sinal: #b07600;
+  --vermelho-sinal: #ad1a2e;
+
+  --sans: var(--fonte-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: var(--fonte-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--papel);
+}
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.lauda {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* ── Cabeçalho-lauda ────────────────────────────────────────────────── */
+
+.cabecalho {
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--tinta);
+  position: relative;
+}
+
+.cabecalho::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  border-bottom: 1px solid var(--tinta);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 0 0 6px;
+}
+
+.cabecalho h1 {
+  font-size: clamp(26px, 4.5vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+
+.periodo-ref {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  margin: 0;
+}
+
+/* ── Seções e cards ─────────────────────────────────────────────────── */
+
+.secao-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 36px 0 12px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--filete);
+  padding: 20px 22px;
+}
+
+.municipio-nome {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.municipio-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--tinta-suave);
+  margin: 2px 0 0;
+}
+
+/* ── Card em foco ───────────────────────────────────────────────────── */
+
+.foco-grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px 44px;
+  margin-top: 24px;
+}
+
+@media (max-width: 760px) {
+  .foco-grade {
+    grid-template-columns: 1fr;
+  }
+}
+
+.indicador-rotulo {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.indicador-def {
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  margin: 0 0 12px;
+  max-width: 52ch;
+}
+
+.valor-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.valor {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.valor--medio {
+  font-size: 24px;
+}
+
+.indicador-rodape {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--filete);
+}
+
+.indicador-periodo {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--tinta-suave);
+}
+
+.indicador-ausente {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  border: 1px dashed var(--filete);
+  padding: 10px 12px;
+  margin: 0;
+}
+
+/* ── Carimbo (selo de apoio, discreto) ──────────────────────────────── */
+
+.carimbo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+}
+
+.carimbo-quadrado {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--cor-sinal, var(--tinta-suave));
+}
+
+.sinal--ok {
+  --cor-sinal: var(--verde-sinal);
+}
+
+.sinal--alerta {
+  --cor-sinal: var(--ambar-sinal);
+}
+
+.sinal--estouro {
+  --cor-sinal: var(--vermelho-sinal);
+}
+
+/* ── Régua da lei ───────────────────────────────────────────────────── */
+
+.regua {
+  margin: 30px 0 6px;
+}
+
+.regua-track {
+  position: relative;
+  height: 14px;
+  background: var(--card-mudo);
+  border: 1px solid var(--filete);
+}
+
+.regua-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--cor-sinal, var(--grafite));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .regua-fill {
+    animation: regua-preencher 0.4s ease-out;
+    transform-origin: left;
+  }
+
+  @keyframes regua-preencher {
+    from {
+      transform: scaleX(0);
+    }
+  }
+}
+
+.regua-tick {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 0;
+  border-left: 1.5px dashed var(--tinta-suave);
+}
+
+.regua-tick--max {
+  border-left: 2px solid var(--tinta);
+}
+
+.regua-tick-rotulo {
+  position: absolute;
+  transform: translateX(-100%);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+  padding-right: 6px;
+}
+
+.regua-tick-rotulo strong {
+  color: var(--tinta);
+  font-weight: 600;
+}
+
+.regua-tick-rotulo--acima {
+  bottom: calc(100% + 7px);
+}
+
+.regua-tick-rotulo--abaixo {
+  top: calc(100% + 7px);
+}
+
+.regua-escala {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--tinta-suave);
+  margin-top: 24px;
+}
+
+.regua--mini {
+  margin: 12px 0 4px;
+}
+
+.regua--mini .regua-track {
+  height: 10px;
+}
+
+.regua--mini .regua-tick {
+  top: -4px;
+  bottom: -4px;
+}
+
+/* ── Fonte rastreável (ⓘ) ───────────────────────────────────────────── */
+
+.fonte-info {
+  position: relative;
+  display: inline-block;
+  font-family: var(--mono);
+}
+
+.fonte-info summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.fonte-info summary::-webkit-details-marker {
+  display: none;
+}
+
+.fonte-info[open] summary {
+  color: var(--tinta);
+}
+
+.fonte-info-painel {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(340px, calc(100vw - 48px));
+  background: var(--card);
+  border: 1px solid var(--tinta);
+  box-shadow: 3px 3px 0 var(--filete);
+  padding: 12px 14px;
+  font-size: 11px;
+  line-height: 1.55;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.fonte-info-painel p {
+  margin: 0 0 8px;
+}
+
+.fonte-info-painel p:last-child {
+  margin-bottom: 0;
+}
+
+.fonte-info-titulo {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+
+.fonte-info-exato {
+  color: var(--tinta-suave);
+}
+
+/* ── Vizinhos ───────────────────────────────────────────────────────── */
+
+.vizinhos-grade {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.vizinho .municipio-nome {
+  font-size: 17px;
+}
+
+.vizinho-destaque {
+  margin-top: 14px;
+}
+
+.vizinho-destaque .indicador-rotulo {
+  font-size: 12.5px;
+}
+
+.mini-indicadores {
+  margin: 16px 0 0;
+  border-top: 1px solid var(--filete);
+}
+
+.mini-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--filete);
+}
+
+.mini-linha dt {
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+
+.mini-linha dd {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Sem dados (São Sepé) ───────────────────────────────────────────── */
+
+.sem-dados {
+  background: var(--card-mudo);
+  border-style: dashed;
+}
+
+.sem-dados-titulo {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 14px 0 6px;
+}
+
+.sem-dados p {
+  font-size: 13px;
+  color: var(--tinta-suave);
+  margin: 0 0 8px;
+}
+
+.sem-dados p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Comparativo ────────────────────────────────────────────────────── */
+
+.comparativo {
+  display: grid;
+  gap: 14px;
+}
+
+.comparativo-linha {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 11rem) minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.comparativo-nome {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.comparativo-valor {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.comparativo-eixo-track {
+  position: relative;
+  height: 42px;
+}
+
+.execucao-linha {
+  margin-top: 14px;
+}
+
+.execucao-rotulo {
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.eixo-rotulo {
+  position: absolute;
+  bottom: 2px;
+  transform: translateX(-100%);
+  padding-right: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+}
+
+.eixo-rotulo strong {
+  color: var(--tinta);
+  font-weight: 600;
+}
+
+.eixo-rotulo--alto {
+  bottom: 22px;
+}
+
+.comparativo .regua {
+  margin: 0;
+}
+
+.comparativo-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 18px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--filete);
+}
+
+@media (max-width: 560px) {
+  .comparativo-linha {
+    grid-template-columns: minmax(0, 1fr) 4.5rem;
+  }
+
+  .comparativo-nome {
+    grid-column: 1 / -1;
+    margin-bottom: -6px;
+  }
+}
+
+/* ── Rodapé metodológico ────────────────────────────────────────────── */
+
+.metodologia {
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 2px solid var(--tinta);
+  color: var(--tinta-suave);
+  font-size: 13px;
+}
+
+.metodologia h2 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 0 0 10px;
+}
+
+.metodologia p {
+  max-width: 72ch;
+  margin: 0 0 10px;
+}
+
+.metodologia strong {
+  color: var(--tinta);
+}
+
+/* ── Erro honesto ───────────────────────────────────────────────────── */
+
+.erro-card {
+  max-width: 640px;
+  margin: 12vh auto 0;
+  background: var(--card);
+  border: 1px solid var(--vermelho-sinal);
+  padding: 24px 26px;
+}
+
+.erro-card h1 {
+  font-size: 20px;
+  margin: 0 0 10px;
+}
+
+.erro-card pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--tinta-suave);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background: var(--card-mudo);
+  padding: 12px;
+  margin: 0 0 12px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
