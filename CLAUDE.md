@@ -49,3 +49,12 @@ Ver `README.md` e `docs/PLANO_CLAUDE_CODE.md`.
   Executivo) além de `an_exercicio`, `nr_periodo`, `co_tipo_demonstrativo` e
   `id_ente`. Sem esses dois parâmetros, a API retorna `count: 0` **sem erro**
   — falha silenciosa. `/rreo` não precisa desses parâmetros extras.
+
+## Fluxo de Git
+
+- Uma tarefa = uma branch = um PR. NUNCA mergear em main localmente.
+- Push só da branch de feature. O merge acontece via PR.
+- main local só atualiza via git pull após o PR ser mergeado.
+- Ao terminar uma tarefa: push da branch e, se necessário, já abrir a PR para
+  main (`gh pr create`) — não esperar o usuário pedir. Depois, parar. Não
+  tocar na main.
