@@ -9,6 +9,7 @@ const app = criarApp(db);
 
 serve({ fetch: app.fetch, port: PORTA }, (info) => {
   console.log(`API rodando em http://localhost:${info.port}`);
-  console.log(`  GET /municipios`);
+  console.log(`  GET /municipios?ano=2024`);
   console.log(`  GET /municipios/:ibge/indicadores?ano=2024`);
+  console.log(`  GET /municipios/:ibge/vizinhos?ano=2024&criterio=regional`);
 });

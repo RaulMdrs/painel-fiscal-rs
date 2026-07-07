@@ -48,8 +48,16 @@ const indicadorSchema = z.object({
   coluna: z.string().min(1),
 });
 
+const municipioComStatusSchema = municipioSchema.extend({ status: statusSchema });
+
 export const respostaMunicipiosSchema = z.object({
-  municipios: z.array(municipioSchema.extend({ status: statusSchema })),
+  municipios: z.array(municipioComStatusSchema),
+});
+
+export const respostaVizinhosSchema = z.object({
+  foco: municipioComStatusSchema,
+  criterio: z.string().min(1),
+  vizinhos: z.array(municipioComStatusSchema),
 });
 
 export const respostaIndicadoresSchema = z.object({
@@ -59,16 +67,15 @@ export const respostaIndicadoresSchema = z.object({
   indicadores: z.array(indicadorSchema),
 });
 
-export type MunicipioComStatus = z.infer<typeof respostaMunicipiosSchema>["municipios"][number];
+export type MunicipioComStatus = z.infer<typeof municipioComStatusSchema>;
 export type IndicadorDaApi = z.infer<typeof indicadorSchema>;
 export type PainelMunicipio = z.infer<typeof respostaIndicadoresSchema>;
 
 const URL_BASE_API = process.env["PAINEL_API_URL"] ?? "http://localhost:3001";
 
-async function buscarJson(caminho: string): Promise<unknown> {
-  let resposta: Response;
+async function requisitar(caminho: string): Promise<Response> {
   try {
-    resposta = await fetch(`${URL_BASE_API}${caminho}`, { cache: "no-store" });
+    return await fetch(`${URL_BASE_API}${caminho}`, { cache: "no-store" });
   } catch (causa) {
     throw new Error(
       `Não foi possível conectar à API do painel em ${URL_BASE_API}. ` +
@@ -76,18 +83,40 @@ async function buscarJson(caminho: string): Promise<unknown> {
       { cause: causa },
     );
   }
+}
+
+async function jsonOuErro(resposta: Response, caminho: string): Promise<unknown> {
   if (!resposta.ok) {
     throw new Error(`API do painel respondeu ${resposta.status} em ${caminho}.`);
   }
   return resposta.json();
 }
 
-export async function buscarMunicipios(): Promise<MunicipioComStatus[]> {
-  const json = await buscarJson("/municipios");
+export async function buscarMunicipios(ano: number): Promise<MunicipioComStatus[]> {
+  const caminho = `/municipios?ano=${ano}`;
+  const json = await jsonOuErro(await requisitar(caminho), caminho);
   return respostaMunicipiosSchema.parse(json).municipios;
 }
 
-export async function buscarPainel(codIbge: number, ano: number): Promise<PainelMunicipio> {
-  const json = await buscarJson(`/municipios/${codIbge}/indicadores?ano=${ano}`);
-  return respostaIndicadoresSchema.parse(json);
+/**
+ * Painel de um município. Retorna `null` em 404 (cod_ibge fora do cadastro do
+ * RS) para a rota chamar `notFound()` — distinto de um município que existe
+ * mas não publicou (esse responde 200 com status "sem_dados").
+ */
+export async function buscarPainel(codIbge: number, ano: number): Promise<PainelMunicipio | null> {
+  const caminho = `/municipios/${codIbge}/indicadores?ano=${ano}`;
+  const resposta = await requisitar(caminho);
+  if (resposta.status === 404) {
+    return null;
+  }
+  return respostaIndicadoresSchema.parse(await jsonOuErro(resposta, caminho));
+}
+
+export async function buscarVizinhos(
+  codIbge: number,
+  ano: number,
+): Promise<MunicipioComStatus[]> {
+  const caminho = `/municipios/${codIbge}/vizinhos?ano=${ano}`;
+  const json = await jsonOuErro(await requisitar(caminho), caminho);
+  return respostaVizinhosSchema.parse(json).vizinhos;
 }

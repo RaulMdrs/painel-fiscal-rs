@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { MUNICIPIOS_ALVO } from "../../core/src/municipiosAlvo.js";
 import type {
   IndicadorFiscal,
+  Municipio,
   Periodicidade,
   ResultadoIndicador,
   UnidadeIndicador,
@@ -28,15 +28,20 @@ export interface IndicadorRastreavel extends ResultadoIndicador {
 
 /**
  * Converte uma linha crua do SQLite (strings sem tipo) num objeto tipado,
- * reaproveitando os tipos do core. Falha alto se algum campo categórico da
- * linha não bater com um valor conhecido — cache corrompido ou schema
+ * reaproveitando os tipos do core. O `municipio` vem do cadastro (tabela
+ * `municipios`, os 497 do RS na Fase 1) — não mais de uma lista fixa de 5.
+ * Falha alto se a linha não pertencer a esse município ou se algum campo
+ * categórico não bater com um valor conhecido: cache corrompido ou schema
  * divergente não deve virar dado silenciosamente errado na API.
  */
-export function mapearLinha(linha: LinhaResultadoIndicador): IndicadorRastreavel {
-  const municipio = MUNICIPIOS_ALVO.find((m) => m.codIbge === linha.codIbge);
-  if (municipio === undefined) {
+export function mapearLinha(
+  linha: LinhaResultadoIndicador,
+  municipio: Municipio,
+): IndicadorRastreavel {
+  if (linha.codIbge !== municipio.codIbge) {
     throw new Error(
-      `Linha do cache com cod_ibge ${linha.codIbge} não corresponde a nenhum município-alvo conhecido.`,
+      `Linha do cache (cod_ibge ${linha.codIbge}) não corresponde ao município informado ` +
+        `(${municipio.nome}, cod_ibge ${municipio.codIbge}).`,
     );
   }
 

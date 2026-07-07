@@ -172,6 +172,23 @@ export function upsertMunicipio(db: Banco, municipio: MunicipioParaGravar): void
 }
 
 /**
+ * Busca um município no cadastro pela chave (cod_ibge). Retorna só os campos
+ * do tipo `Municipio` do core (nome/uf), usados pela API — a população e a
+ * microrregião ficam para quem monta a vizinhança.
+ */
+export function buscarMunicipioCadastro(db: Banco, codIbge: number): Municipio | undefined {
+  return db
+    .select({
+      codIbge: municipios.codIbge,
+      nome: municipios.nome,
+      uf: municipios.uf,
+    })
+    .from(municipios)
+    .where(eq(municipios.codIbge, codIbge))
+    .get();
+}
+
+/**
  * Monta o universo de municípios pronto para `encontrarVizinhos` (core):
  * cadastro (microrregião/população) cruzado com o status de ingestão do
  * exercício pedido. Município do cadastro sem linha em `progresso_ingestao`
