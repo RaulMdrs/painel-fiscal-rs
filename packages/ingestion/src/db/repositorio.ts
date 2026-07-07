@@ -1,7 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import type { Municipio, ResultadoIndicador } from "../../../core/src/types.js";
+import type {
+  MunicipioVizinhanca,
+  StatusDadosMunicipio,
+} from "../../../core/src/vizinhanca/tipos.js";
 import type { Banco } from "./client.js";
-import { progressoIngestao, resultadosIndicadores } from "./schema.js";
+import { municipios, progressoIngestao, resultadosIndicadores } from "./schema.js";
 
 export interface ResultadoParaGravar extends ResultadoIndicador {
   anexo: string;
@@ -55,8 +59,12 @@ export function upsertResultado(db: Banco, resultado: ResultadoParaGravar): void
     .run();
 }
 
-/** Status de uma tentativa de ingestão de um município num exercício. */
-export type StatusIngestao = "completo" | "parcial" | "sem_dados";
+/**
+ * Status de uma tentativa de ingestão de um município num exercício — mesma
+ * union de `StatusDadosMunicipio` em core/src/vizinhanca/tipos.ts (ingestion
+ * depende de core, não o contrário, por isso o alias em vez de reexportar).
+ */
+export type StatusIngestao = StatusDadosMunicipio;
 
 export interface ProgressoParaGravar {
   municipio: Municipio;
@@ -128,4 +136,70 @@ export function relatorioCobertura(
     contagem[linha.status as StatusIngestao]++;
   }
   return contagem;
+}
+
+export interface MunicipioParaGravar {
+  codIbge: number;
+  nome: string;
+  uf: string;
+  populacao: number;
+  microrregiaoId: number;
+  microrregiaoNome: string;
+}
+
+/**
+ * Upsert do cadastro de um município na chave (cod_ibge) — usado pelo script
+ * de seed (Fase 1, Tarefa 1.2), que cruza microrregião (IBGE) com nome/
+ * população (SICONFI).
+ */
+export function upsertMunicipio(db: Banco, municipio: MunicipioParaGravar): void {
+  const agora = new Date().toISOString();
+
+  db.insert(municipios)
+    .values({ ...municipio, atualizadoEm: agora })
+    .onConflictDoUpdate({
+      target: municipios.codIbge,
+      set: {
+        nome: municipio.nome,
+        uf: municipio.uf,
+        populacao: municipio.populacao,
+        microrregiaoId: municipio.microrregiaoId,
+        microrregiaoNome: municipio.microrregiaoNome,
+        atualizadoEm: agora,
+      },
+    })
+    .run();
+}
+
+/**
+ * Monta o universo de municípios pronto para `encontrarVizinhos` (core):
+ * cadastro (microrregião/população) cruzado com o status de ingestão do
+ * exercício pedido. Município do cadastro sem linha em `progresso_ingestao`
+ * para o exercício vira `"sem_dados"` explicitamente — nunca é omitido da
+ * lista, a ausência de dado é a informação.
+ */
+export function listarMunicipiosParaVizinhanca(
+  db: Banco,
+  exercicio: number,
+): MunicipioVizinhanca[] {
+  const cadastro = db.select().from(municipios).all();
+  const progresso = db
+    .select({ codIbge: progressoIngestao.codIbge, status: progressoIngestao.status })
+    .from(progressoIngestao)
+    .where(eq(progressoIngestao.exercicio, exercicio))
+    .all();
+
+  const statusPorCodIbge = new Map(
+    progresso.map((linha) => [linha.codIbge, linha.status as StatusDadosMunicipio]),
+  );
+
+  return cadastro.map((municipio) => ({
+    codIbge: municipio.codIbge,
+    nome: municipio.nome,
+    uf: municipio.uf,
+    populacao: municipio.populacao,
+    microrregiaoId: municipio.microrregiaoId,
+    microrregiaoNome: municipio.microrregiaoNome,
+    status: statusPorCodIbge.get(municipio.codIbge) ?? "sem_dados",
+  }));
 }

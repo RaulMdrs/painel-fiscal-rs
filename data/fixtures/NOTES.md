@@ -95,6 +95,35 @@ Formato: `{items: [...]}`, cada item:
 - `cod_conta: "LimiteDefinidoPorResolucaoDoSenadoFederal"` = limite de
   endividamento em R$ (não percentual).
 
+## Microrregião — API de Localidades do IBGE (Tarefa 1.2, reconhecimento)
+
+`/entes` do SICONFI **não tem** microrregião — só `regiao` (macrorregião do
+Brasil, ex. `"SU"`), confirmado no fixture acima e numa chamada real sem
+filtro. Para o modelo de vizinhança "regional" (mesma microrregião), a fonte é
+a API de Localidades do IBGE, sem autenticação:
+
+```
+GET https://servicodados.ibge.gov.br/api/v1/localidades/estados/RS/municipios
+```
+
+Chamada real feita em 2026-07-07: retorna os 497 municípios do RS numa
+resposta só, cada item com `id` (cod_ibge), `nome` e `microrregiao: {id,
+nome, mesorregiao: {...}}`. Microrregião não muda com frequência, então em
+vez de chamar o IBGE a cada ingestão, o resultado foi salvo como seed
+estático versionado: `ibge_municipios_rs.json`, já achatado para só os campos
+usados — `{codIbge, nome, microrregiaoId, microrregiaoNome}` — descartando
+mesorregião/região-imediata (não usadas ainda).
+
+RS tem 35 microrregiões, tamanho entre 3 e 31 municípios (mediana 13).
+
+**Oráculo usado no teste de `packages/core`** — microrregião de Cachoeira do
+Sul (id `43022`, 7 municípios, 6 vizinhos excluindo ela mesma): Cerro Branco,
+Novo Cabrais, Pantano Grande, Paraíso do Sul, Passo do Sobrado, Rio Pardo.
+
+**Oráculo para microrregião grande** — Lajeado-Estrela (id `43021`, 31
+municípios), usada para testar o critério de priorização por proximidade de
+população quando o número de vizinhos excede o limite configurado.
+
 ## Decisão pendente para Tarefa 2
 
 Os valores de `coluna` mudam de nome conforme o anexo/demonstrativo

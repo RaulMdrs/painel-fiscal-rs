@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p packages/web",
     "conferir": "tsx scripts/conferir.ts",
     "ingest": "tsx packages/ingestion/src/ingest.ts",
+    "seed:municipios": "tsx packages/ingestion/src/seedMunicipios.ts",
     "api": "tsx packages/api/src/server.ts"
   },
   "devDependencies": {

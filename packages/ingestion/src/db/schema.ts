@@ -71,3 +71,23 @@ export const progressoIngestao = sqliteTable(
 
 export type LinhaProgressoIngestao = typeof progressoIngestao.$inferSelect;
 export type NovaLinhaProgressoIngestao = typeof progressoIngestao.$inferInsert;
+
+/**
+ * Cadastro de município: dados relativamente estáveis (nome, população,
+ * microrregião) que não vêm do SICONFI e não fazem sentido junto do
+ * resultado de um indicador. Fonte: SICONFI /entes (nome, população) + API
+ * de Localidades do IBGE (microrregião), cruzados pelo script de seed
+ * (Fase 1, Tarefa 1.2) — ver data/fixtures/NOTES.md.
+ */
+export const municipios = sqliteTable("municipios", {
+  codIbge: integer("cod_ibge").primaryKey(),
+  nome: text("nome").notNull(),
+  uf: text("uf").notNull(),
+  populacao: integer("populacao").notNull(),
+  microrregiaoId: integer("microrregiao_id").notNull(),
+  microrregiaoNome: text("microrregiao_nome").notNull(),
+  atualizadoEm: text("atualizado_em").notNull(),
+});
+
+export type LinhaMunicipio = typeof municipios.$inferSelect;
+export type NovaLinhaMunicipio = typeof municipios.$inferInsert;

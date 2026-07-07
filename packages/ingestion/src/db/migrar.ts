@@ -36,5 +36,15 @@ export function garantirEsquema(sqlite: Database.Database): void {
       atualizado_em TEXT NOT NULL,
       UNIQUE (cod_ibge, exercicio)
     );
+
+    CREATE TABLE IF NOT EXISTS municipios (
+      cod_ibge INTEGER PRIMARY KEY,
+      nome TEXT NOT NULL,
+      uf TEXT NOT NULL,
+      populacao INTEGER NOT NULL,
+      microrregiao_id INTEGER NOT NULL,
+      microrregiao_nome TEXT NOT NULL,
+      atualizado_em TEXT NOT NULL
+    );
   `);
 }
