@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "pnpm --parallel -r run dev",
     "test": "vitest run",
     "test:integration": "SICONFI_INTEGRATION=1 vitest run --config vitest.integration.config.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/web",
     "conferir": "tsx scripts/conferir.ts",
     "ingest": "tsx packages/ingestion/src/ingest.ts",
     "seed:municipios": "tsx packages/ingestion/src/seedMunicipios.ts",
