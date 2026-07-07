@@ -97,6 +97,105 @@ a {
   margin: 0;
 }
 
+/* ── Seletor de município (autocomplete) ────────────────────────────── */
+
+.seletor {
+  position: relative;
+  margin: 22px 0 4px;
+  max-width: 540px;
+}
+
+.seletor-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin-bottom: 6px;
+}
+
+.seletor-input {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 16px;
+  color: var(--tinta);
+  background: var(--card);
+  border: 1px solid var(--tinta);
+  padding: 11px 14px;
+}
+
+.seletor-input::placeholder {
+  color: var(--tinta-suave);
+}
+
+.seletor-lista {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 322px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--tinta);
+  box-shadow: 3px 3px 0 var(--filete);
+}
+
+.seletor-opcao {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.seletor-opcao.ativa {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+.seletor-opcao-nome {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.seletor-opcao--muda .seletor-opcao-nome {
+  color: var(--tinta-suave);
+  font-weight: 500;
+}
+
+.seletor-opcao--muda.ativa .seletor-opcao-nome,
+.seletor-opcao.ativa .seletor-opcao-marca {
+  color: var(--papel);
+}
+
+.seletor-opcao-marca {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+}
+
+.seletor-vazio {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--card);
+  border: 1px solid var(--filete);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--tinta-suave);
+}
+
 /* ── Seções e cards ─────────────────────────────────────────────────── */
 
 .secao-titulo {
