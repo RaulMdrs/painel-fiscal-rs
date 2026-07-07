@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buscarRGF, buscarRREO, listarEntes } from "../../src/siconfi/client.js";
+import {
+  buscarRGF,
+  buscarRREO,
+  listarEntes,
+  listarMunicipios,
+} from "../../src/siconfi/client.js";
 import { lerFixture } from "./fixtures.js";
 
 function respostaFake(corpo: unknown, ok = true, status = 200): Response {
@@ -93,6 +98,46 @@ describe("client SICONFI", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(entes.map((e) => e.cod_ibge)).toEqual([4303004, 4315701]);
+  });
+
+  it("listarMunicipios filtra só esfera M e, se informado, a UF pedida", async () => {
+    const paginaUnica = {
+      items: [
+        { cod_ibge: 1, ente: "União", capital: "0", regiao: "BR", uf: null, esfera: "U", exercicio: 2024, populacao: 1, cnpj: "1" },
+        { cod_ibge: 43, ente: "Rio Grande do Sul", capital: "0", regiao: "SU", uf: "RS", esfera: "E", exercicio: 2024, populacao: 1, cnpj: "2" },
+        { cod_ibge: 4303004, ente: "Cachoeira do Sul", capital: "0", regiao: "SU", uf: "RS", esfera: "M", exercicio: 2024, populacao: 1, cnpj: "3" },
+        { cod_ibge: 3550308, ente: "São Paulo", capital: "1", regiao: "SE", uf: "SP", esfera: "M", exercicio: 2024, populacao: 1, cnpj: "4" },
+      ],
+      hasMore: false,
+      limit: 10,
+      offset: 0,
+      count: 4,
+    };
+    fetchMock.mockResolvedValueOnce(respostaFake(paginaUnica));
+
+    const municipiosRS = await listarMunicipios({ uf: "RS" });
+
+    expect(municipiosRS.map((m) => m.cod_ibge)).toEqual([4303004]);
+  });
+
+  it("listarMunicipios sem UF retorna todos os municípios, excluindo União/Estados", async () => {
+    const paginaUnica = {
+      items: [
+        { cod_ibge: 1, ente: "União", capital: "0", regiao: "BR", uf: null, esfera: "U", exercicio: 2024, populacao: 1, cnpj: "1" },
+        { cod_ibge: 43, ente: "Rio Grande do Sul", capital: "0", regiao: "SU", uf: "RS", esfera: "E", exercicio: 2024, populacao: 1, cnpj: "2" },
+        { cod_ibge: 4303004, ente: "Cachoeira do Sul", capital: "0", regiao: "SU", uf: "RS", esfera: "M", exercicio: 2024, populacao: 1, cnpj: "3" },
+        { cod_ibge: 3550308, ente: "São Paulo", capital: "1", regiao: "SE", uf: "SP", esfera: "M", exercicio: 2024, populacao: 1, cnpj: "4" },
+      ],
+      hasMore: false,
+      limit: 10,
+      offset: 0,
+      count: 4,
+    };
+    fetchMock.mockResolvedValueOnce(respostaFake(paginaUnica));
+
+    const municipios = await listarMunicipios();
+
+    expect(municipios.map((m) => m.cod_ibge).sort()).toEqual([3550308, 4303004]);
   });
 
   it("falha alto quando a resposta não bate com o schema, em vez de retornar dado não validado", async () => {

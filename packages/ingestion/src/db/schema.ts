@@ -45,3 +45,29 @@ export const resultadosIndicadores = sqliteTable(
 export type LinhaResultadoIndicador = typeof resultadosIndicadores.$inferSelect;
 export type NovaLinhaResultadoIndicador =
   typeof resultadosIndicadores.$inferInsert;
+
+/**
+ * Uma linha por (município, exercício) registrando o resultado da última
+ * tentativa de ingestão — permite retomar uma rodada longa sem reingerir
+ * municípios já processados (Fase 1, Tarefa 1.1) e é a base do relatório de
+ * cobertura (completo/parcial/sem_dados).
+ */
+export const progressoIngestao = sqliteTable(
+  "progresso_ingestao",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    codIbge: integer("cod_ibge").notNull(),
+    municipioNome: text("municipio_nome").notNull(),
+    exercicio: integer("exercicio").notNull(),
+    status: text("status").notNull(),
+    indicadoresOk: integer("indicadores_ok").notNull(),
+    indicadoresFalha: integer("indicadores_falha").notNull(),
+    atualizadoEm: text("atualizado_em").notNull(),
+  },
+  (tabela) => [
+    uniqueIndex("progresso_ingestao_chave_unica").on(tabela.codIbge, tabela.exercicio),
+  ],
+);
+
+export type LinhaProgressoIngestao = typeof progressoIngestao.$inferSelect;
+export type NovaLinhaProgressoIngestao = typeof progressoIngestao.$inferInsert;

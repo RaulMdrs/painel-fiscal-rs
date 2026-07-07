@@ -24,5 +24,17 @@ export function garantirEsquema(sqlite: Database.Database): void {
       ingerido_em TEXT NOT NULL,
       UNIQUE (cod_ibge, indicador, exercicio, periodo_numero, periodicidade)
     );
+
+    CREATE TABLE IF NOT EXISTS progresso_ingestao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cod_ibge INTEGER NOT NULL,
+      municipio_nome TEXT NOT NULL,
+      exercicio INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      indicadores_ok INTEGER NOT NULL,
+      indicadores_falha INTEGER NOT NULL,
+      atualizado_em TEXT NOT NULL,
+      UNIQUE (cod_ibge, exercicio)
+    );
   `);
 }
